@@ -1,6 +1,7 @@
 #!/bin/sh
-# Builds dist/ay-artifacts-<version>.zip: the Claude plugin alone, for Add > Upload plugin on claude.ai and for
-# handing to someone outside the organization. Needs jq and python3. Run from the repository root.
+# Builds dist/ay-artifacts-<version>.zip, the Claude plugin alone, for Add > Upload plugin on claude.ai and for
+# handing to someone outside the organization, and dist/ay-artifacts-chatgpt-<version>.zip, the instructions and
+# knowledge files for a ChatGPT Project or custom GPT. Needs jq and python3. Run from the repository root.
 set -eu
 
 version=$(jq -er '.version' .claude-plugin/plugin.json)
@@ -21,8 +22,16 @@ if grep -q '\${' "$plugin/.mcp.json"; then
     exit 1
 fi
 
+chatgpt="$stage/ay-artifacts-chatgpt"
+mkdir -p "$chatgpt"
+cp chatgpt/project-instructions.md "$chatgpt/"
+cp skills/ay-artifact/references/runtime.md skills/ay-artifact/references/skeleton/page.html \
+    skills/ay-artifact/references/skeleton/page.css skills/ay-artifact/references/skeleton/page.js "$chatgpt/"
+
 mkdir -p dist
-out="$PWD/dist/ay-artifacts-$version.zip"
-rm -f "$out"
-(cd "$stage" && python3 -m zipfile -c "$out" ay-artifacts)
-echo "$out"
+for name in ay-artifacts ay-artifacts-chatgpt; do
+    out="$PWD/dist/$name-$version.zip"
+    rm -f "$out"
+    (cd "$stage" && python3 -m zipfile -c "$out" "$name")
+    echo "$out"
+done
