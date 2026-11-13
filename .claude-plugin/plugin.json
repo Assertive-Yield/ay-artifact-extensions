@@ -2,7 +2,7 @@
   "name": "ay-artifacts",
   "displayName": "AY Artifacts",
   "description": "Build AssertiveYield artifacts (sandboxed report pages) with the AY MCP server: a tested page skeleton, a preview harness and the runtime contract.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": {
     "name": "Assertive Yield"
   },

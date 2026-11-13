@@ -22,9 +22,13 @@ fi
 
 ./scripts/build-plugin-zip.sh >/dev/null
 # The assets carry fixed names so that the release's "latest" download links stay the same across versions.
-cp "dist/ay-artifacts-claude-$version.zip" dist/ay-artifacts-claude.zip
-cp "dist/ay-artifacts-chatgpt-$version.zip" dist/ay-artifacts-chatgpt.zip
-assets="dist/ay-artifacts-claude.zip dist/ay-artifacts-chatgpt.zip"
+# Gemini CLI, installing from the repository URL, takes none of them (none is platform-named and there is more
+# than one) and uses the release's source archive, whose root holds gemini-extension.json.
+assets=""
+for host in claude gemini antigravity chatgpt; do
+    cp "dist/ay-artifacts-$host-$version.zip" "dist/ay-artifacts-$host.zip"
+    assets="$assets dist/ay-artifacts-$host.zip"
+done
 title="AY Artifacts $tag"
 
 if [ "${DRY_RUN:-}" = "1" ]; then

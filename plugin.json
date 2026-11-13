@@ -1,7 +1,7 @@
 {
     "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
     "name": "ay-artifacts",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Build AssertiveYield artifacts (sandboxed report pages) with the AY MCP server: a tested page skeleton, a preview harness and the runtime contract.",
     "author": {
         "name": "Assertive Yield"

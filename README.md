@@ -14,10 +14,10 @@ The repository root is the extension. The content is written once and each host 
 | `skills/ay-artifact/` | every host | The shared content: workflow and page requirements (`SKILL.md`), the runtime contract, a tested page skeleton and sample fixtures (`references/`), the preview harness (`scripts/preview.mjs`) |
 | `.claude-plugin/`, `.mcp.json` | Claude | Plugin manifest, the marketplace that lists it, and the MCP server entry. Set `AY_SUITE_URL` to point at another Suite deployment |
 | `plugin.json`, `mcp.json`, `.agents/plugins/`, `skills/ay-artifact/agents/openai.yaml` | Codex, ChatGPT desktop app | The same skill in the Agent Plugins format, with its marketplace |
+| `gemini-extension.json` | Gemini CLI | Extension manifest; the skill is discovered from `skills/` |
+| `.antigravity-plugin/` | Antigravity | Plugin manifest, kept out of the root because `plugin.json` there is the Codex one |
 | `chatgpt/` | ChatGPT on the web | Paste-in instructions, since ChatGPT cannot load skills or run the harness |
 | `tests/`, `evals/`, `scripts/`, `.github/` | maintainers | The harness's unit tests, the eval cases, the script that builds the downloadable zips and the workflows that test and release |
-
-A Gemini extension is not here yet; when added it gets its own manifest at the root and reuses `skills/ay-artifact/`.
 
 ## Install in Claude Code
 
@@ -53,6 +53,26 @@ codex mcp login ay
 Codex then lists the `ay` server with OAuth pending until the login, and the skill answers to `$ay-artifact`.
 The ChatGPT desktop app reads the same marketplace file.
 
+## Install in Gemini CLI
+
+```bash
+gemini extensions install https://github.com/Assertive-Yield/ay-artifact-extensions
+```
+
+Or download <https://github.com/Assertive-Yield/ay-artifact-extensions/releases/latest/download/ay-artifacts-gemini.zip>,
+unzip it and run `gemini extensions install ./ay-artifacts-gemini`. The extension holds the skill only: connect the
+AssertiveYield MCP server in your own Gemini CLI settings.
+
+## Install in Antigravity
+
+```bash
+agy plugin install https://github.com/Assertive-Yield/ay-artifact-extensions
+```
+
+Or download <https://github.com/Assertive-Yield/ay-artifact-extensions/releases/latest/download/ay-artifacts-antigravity.zip>,
+unzip it and run `agy plugin install ./ay-artifacts-antigravity`, or copy the folder into `~/.gemini/config/plugins/`. The
+plugin holds the skill only: add the AssertiveYield MCP server in Antigravity's own MCP settings.
+
 ## Use in ChatGPT on the web
 
 In Settings, turn on Developer mode and add the MCP server `https://suite.assertiveyield.com/mcp/suite` with
@@ -68,6 +88,8 @@ four files as knowledge. Enable the server in each chat.
 ```bash
 claude --plugin-dir .            # load the working copy; /reload-plugins after edits
 claude plugin validate .         # manifests, paths, .mcp.json
+gemini extensions validate .     # the Gemini CLI extension
+agy plugin validate .            # the Antigravity plugin (--strict passes on the built zip, not on the root, which warns about the other hosts' files)
 node --test tests/*.test.mjs     # the harness's unit tests (the plugin-tests job of the ci workflow)
 ```
 
@@ -91,7 +113,8 @@ claude plugin eval . --eval-dir evals --tag live --mocks off --allow-tools "mcp_
 This repository is public. Keep it free of credentials, customer names and data, entity or organization ids,
 internal hostnames and personal contact details; fixtures and examples use made-up values. A change to the page
 rules goes in both `skills/ay-artifact/` and `chatgpt/project-instructions.md`. Every change bumps `version` in
-`plugin.json`, `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`, and adds a section to
+`plugin.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `gemini-extension.json` and
+`.antigravity-plugin/plugin.json`, and adds a section to
 `CHANGELOG.md` (the `manifest-versions` job of the ci workflow checks this).
 
 To release, tag the merged commit `v<version>` and push the tag: the `release` workflow builds the zips with
