@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds dist/ay-artifacts-<version>.zip, the Claude plugin alone, for Add > Upload plugin on claude.ai and for
+# Builds dist/ay-artifacts-claude-<version>.zip, the Claude plugin alone, for Add > Upload plugin on claude.ai and for
 # handing to someone outside the organization, and dist/ay-artifacts-chatgpt-<version>.zip, the instructions and
 # knowledge files for a ChatGPT Project or custom GPT. Needs jq and python3. Run from the repository root.
 set -eu
@@ -29,9 +29,10 @@ cp skills/ay-artifact/references/runtime.md skills/ay-artifact/references/skelet
     skills/ay-artifact/references/skeleton/page.css skills/ay-artifact/references/skeleton/page.js "$chatgpt/"
 
 mkdir -p dist
-for name in ay-artifacts ay-artifacts-chatgpt; do
-    out="$PWD/dist/$name-$version.zip"
+# The zip's top-level folder is the plugin name; the file name says which host it is for.
+for pair in ay-artifacts:ay-artifacts-claude ay-artifacts-chatgpt:ay-artifacts-chatgpt; do
+    out="$PWD/dist/${pair#*:}-$version.zip"
     rm -f "$out"
-    (cd "$stage" && python3 -m zipfile -c "$out" "$name")
+    (cd "$stage" && python3 -m zipfile -c "$out" "${pair%:*}")
     echo "$out"
 done

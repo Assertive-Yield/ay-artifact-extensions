@@ -34,7 +34,7 @@ disable one of them.
 
 Download the latest plugin file:
 
-<https://github.com/Assertive-Yield/ay-artifact-extensions/releases/latest/download/ay-artifacts.zip>
+<https://github.com/Assertive-Yield/ay-artifact-extensions/releases/latest/download/ay-artifacts-claude.zip>
 
 Every version, with its notes, is on the [Releases page](https://github.com/Assertive-Yield/ay-artifact-extensions/releases).
 In Claude, use **Add > Upload plugin** with that zip, which holds only the Claude plugin. Then open the plugin's

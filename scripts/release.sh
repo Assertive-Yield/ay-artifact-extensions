@@ -22,9 +22,9 @@ fi
 
 ./scripts/build-plugin-zip.sh >/dev/null
 # The assets carry fixed names so that the release's "latest" download links stay the same across versions.
-cp "dist/ay-artifacts-$version.zip" dist/ay-artifacts.zip
+cp "dist/ay-artifacts-claude-$version.zip" dist/ay-artifacts-claude.zip
 cp "dist/ay-artifacts-chatgpt-$version.zip" dist/ay-artifacts-chatgpt.zip
-assets="dist/ay-artifacts.zip dist/ay-artifacts-chatgpt.zip"
+assets="dist/ay-artifacts-claude.zip dist/ay-artifacts-chatgpt.zip"
 title="AY Artifacts $tag"
 
 if [ "${DRY_RUN:-}" = "1" ]; then
