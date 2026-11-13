@@ -1,0 +1,11 @@
+interface:
+  display_name: "AY artifact"
+  short_description: "Build AssertiveYield artifact pages"
+  default_prompt: "Build an AssertiveYield artifact dashboard for..."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "ay"
+      description: "AssertiveYield Suite MCP server (reporting and artifact tools)"
+      transport: "streamable_http"
+      url: "https://suite.assertiveyield.com/mcp/suite"

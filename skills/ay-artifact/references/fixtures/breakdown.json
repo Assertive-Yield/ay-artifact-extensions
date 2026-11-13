@@ -1,0 +1,17 @@
+{
+    "match": { "dimensions": ["geo_country_code"] },
+    "result": {
+        "columns": [
+            { "id": "geo_country_code", "label": "Country Code", "type": "dimension" },
+            { "id": "revenue", "label": "Revenue", "type": "metric" },
+            { "id": "impressions", "label": "Impressions", "type": "metric" },
+            { "id": "rpm", "label": "RPM", "type": "metric" }
+        ],
+        "rows": [
+            { "geo_country_code": "US", "revenue": "8000", "impressions": "2000000", "rpm": "4" },
+            { "geo_country_code": "DE", "revenue": "3000", "impressions": "1500000", "rpm": "2" },
+            { "geo_country_code": null, "revenue": "1345.678", "impressions": "1067890", "rpm": "1.26" }
+        ],
+        "has_more": true
+    }
+}

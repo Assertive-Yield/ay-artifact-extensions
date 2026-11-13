@@ -1,0 +1,12 @@
+{
+    "match": { "dimensions": [], "metrics": ["revenue", "impressions", "rpm"] },
+    "result": {
+        "columns": [
+            { "id": "revenue", "label": "Revenue", "type": "metric" },
+            { "id": "impressions", "label": "Impressions", "type": "metric" },
+            { "id": "rpm", "label": "RPM", "type": "metric" }
+        ],
+        "rows": [{ "revenue": "12345.678", "impressions": "4567890", "rpm": "2.7" }],
+        "has_more": false
+    }
+}
