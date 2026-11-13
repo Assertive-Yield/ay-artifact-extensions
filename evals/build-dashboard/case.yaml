@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: build-dashboard
+description: "Build and save a real dashboard artifact through the AY MCP server. Needs a Suite login: run with --tag live --mocks off --allow-tools 'mcp__*'."
+tags: [live]
+plugins: ["../.."]
+execution:
+  model: sonnet
+  max_turns: 40
+  timeout_seconds: 1200

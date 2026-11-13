@@ -1,0 +1,19 @@
+{
+    "match": { "time_bucket": "by_day", "metrics": ["revenue"] },
+    "result": {
+        "columns": [
+            { "id": "time", "label": "Time", "type": "time" },
+            { "id": "revenue", "label": "Revenue", "type": "metric" }
+        ],
+        "rows": [
+            { "time": "2026-11-01", "revenue": "1500.2" },
+            { "time": "2026-11-02", "revenue": "1800" },
+            { "time": "2026-11-03", "revenue": "1200.5" },
+            { "time": "2026-11-04", "revenue": "2100" },
+            { "time": "2026-11-05", "revenue": "1950" },
+            { "time": "2026-11-06", "revenue": "2300.9" },
+            { "time": "2026-11-07", "revenue": "1495" }
+        ],
+        "has_more": false
+    }
+}

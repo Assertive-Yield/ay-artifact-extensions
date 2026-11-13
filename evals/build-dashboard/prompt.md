@@ -1,0 +1,1 @@
+Build an AssertiveYield artifact for the first entity `list_entities` returns: a dashboard with total revenue and impressions, revenue by day, and a revenue breakdown by country, all for the last 7 full days. Save it and give me the link.
