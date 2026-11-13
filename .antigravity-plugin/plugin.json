@@ -1,0 +1,13 @@
+{
+    "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+    "name": "ay-artifacts-antigravity",
+    "displayName": "AY Artifacts",
+    "version": "0.0.2",
+    "description": "Build AssertiveYield artifacts (sandboxed report pages) with the AY MCP server: a tested page skeleton, a preview harness and the runtime contract.",
+    "author": {
+        "name": "Assertive Yield"
+    },
+    "repository": "https://github.com/Assertive-Yield/ay-artifact-extensions",
+    "keywords": ["assertiveyield", "artifacts", "dashboards", "mcp"],
+    "suggestedPrompts": ["Build an AssertiveYield artifact dashboard for..."]
+}
