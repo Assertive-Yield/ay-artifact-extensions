@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+        "ay": {
+            "type": "http",
+            "url": "${AY_SUITE_URL:-https://suite.assertiveyield.com}/mcp/suite"
+        }
+    }
+}

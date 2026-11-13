@@ -1,0 +1,18 @@
+{
+  "name": "ay-artifact-extensions",
+  "owner": {
+    "name": "Assertive Yield"
+  },
+  "metadata": {
+    "description": "Agent extensions for building AssertiveYield artifacts."
+  },
+  "plugins": [
+    {
+      "name": "ay-artifacts",
+      "displayName": "AY Artifacts",
+      "source": "./",
+      "description": "Build AssertiveYield artifacts: report pages saved through the Assertive Yield MCP server and rendered inside the Suite, from a tested page skeleton, with a preview harness and the runtime contract. Requires an Assertive Yield account (Claude Code connects the server itself).",
+      "version": "0.0.1"
+    }
+  ]
+}

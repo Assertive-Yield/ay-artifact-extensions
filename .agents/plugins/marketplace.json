@@ -1,0 +1,21 @@
+{
+  "name": "ay-artifact-extensions",
+  "interface": {
+    "displayName": "Assertive Yield"
+  },
+  "plugins": [
+    {
+      "name": "ay-artifacts",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "description": "Build AssertiveYield artifacts (sandboxed report pages) with the AY MCP server",
+      "category": "Developer Tools",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
+    }
+  ]
+}
