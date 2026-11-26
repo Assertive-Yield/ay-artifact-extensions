@@ -24,15 +24,16 @@ Workflow:
    query returns no rows or is refused, tell the user what blocks the page and what to change. Never save a page
    that "will work once the data is available".
 3. Write the page from the knowledge files `page.html`, `page.css` and `page.js`: change `CONFIG` to the ids you
-   tested, then the `PANELS` list. Keep what the skeleton already does: a query runner with at most 2 queries in
-   flight, a generation counter that drops responses to older filters, loading, error and empty states per panel,
-   queries started from a `click` handler and never a `<form>`, `Intl.NumberFormat` formatting, inline SVG
-   charts. The frame injects nothing but `AY.runReport`: no chart library, no stylesheet, no network, so
+   tested, then the `PANELS` list. Keep what the skeleton already does: a generation counter that drops responses
+   and progress for older filters, loading, error and empty states per panel with the loading state driven by
+   `onProgress` ("Waiting for a slot" while queued, then the share of rows read), queries started from a `click`
+   handler and never a `<form>`, `Intl.NumberFormat` formatting, inline SVG charts. The frame injects nothing but `AY.runReport`: no chart library, no stylesheet, no network, so
    everything the page needs is inline.
 4. Before saving, re-read your js and check each panel against this list: a loading state from the first
-   render, the `AY.runReport` rejection message shown where the result would go, an explicit empty state, no
-   more than 2 queries started at once, no `<form>`, no `fetch`, `import`, external URL or `location` change,
-   `limit` at most 1000, a coarser `time_bucket` for longer ranges.
+   render that follows `onProgress`, the `AY.runReport` rejection message shown where the result would go, an
+   explicit empty state, queries run on a change or an Apply button and not on every keystroke, no `<form>`, no
+   `fetch`, `import`, external URL or `location` change, `limit` at most 1000, a coarser `time_bucket` for
+   longer ranges.
 5. Save with `create_artifact` (`owner: { "type": "current_user" }`, `runtime_version: "1"`) or `get_artifact`
    then `update_artifact` with the complete new content. Reply with the `url` from the answer and one or two
    sentences on what the page shows and any assumption you made.

@@ -28,7 +28,7 @@ allows, the server is right: follow its error message.
    fixture for the preview. → verify: each query returned rows for the entities and dates asked for. If one
    does not, tell the user what blocks the page and what to change; never save a page that "will work later".
 3. **Write the page** from the skeleton (below), against the real column ids and values you saw. → verify:
-   the numbers the skeleton hardcodes (2 queries in flight, `limit: 1000`, the day spans in `bucketFor`, the
+   the numbers the skeleton hardcodes (`limit: 1000`, the day spans in `bucketFor`, the
    31 days and 3 months in `rangeProblem`) are within what `references/runtime.md` and `get_instructions` state; change them if not.
 4. **Preview** it with the harness in every state (below) and look at the screenshots. → verify: data, loading,
    error and empty states all read correctly; nothing overflows; numbers are formatted.
@@ -43,15 +43,15 @@ every state of that query:
 
 - **Loading**: a query takes from seconds to a few minutes. Show a loading state where its result goes from the
   moment it starts, on the first load too: never an empty space or a placeholder that reads as a value, such
-  as `0`.
+  as `0`. Drive it from `onProgress`: "Waiting for a slot" while queued, then the share of rows read.
 - **Errors**: when `AY.runReport` rejects, show its message where that query's result would be. Run the queries
   independently, so one failed query leaves the other results on screen instead of blanking the page.
 - **Empty**: a query with no rows says so where its result would be ("No data for this range"), unlike a zero.
 - **Stale responses**: when the viewer changes a filter while queries run, render only the responses to the
   latest filters and drop the older ones when they arrive.
-- **Query budget**: at most 2 queries at a time and 20 per minute; a call over that rejects with "Too many
-  queries". Queue the queries instead of starting them all at once, and run them on a change or an Apply
-  button, not on every keystroke.
+- **Query load**: the queries wait their turn in a queue shared by every viewer (reported as `queued`), so a
+  page that fires many at once waits longer, and a query still unanswered after 20 minutes fails like any
+  other. Run them on a change or an Apply button, not on every keystroke.
 - **No forms, no navigation**: a `<form>` never submits in the frame and links go nowhere. Start queries from
   `click`, `change` or `keydown` handlers.
 
@@ -61,9 +61,9 @@ every state of that query:
 title and date controls, a totals row, an SVG trend chart and a sorted breakdown table. Copy the directory to a
 work folder and edit it; do not write a page from a blank file. The skeleton already does what every page must:
 
-- a query runner that keeps at most 2 queries in flight and queues the rest;
-- a generation counter so a response to older filters is dropped;
-- loading, error and empty states per panel, so one failed query leaves the others on screen;
+- a generation counter so a response or progress report for older filters is dropped;
+- loading, error and empty states per panel, so one failed query leaves the others on screen, with the loading
+  state driven by `onProgress`;
 - queries started from a `click` handler, never a `<form>`;
 - a range check that shows a message for an empty or inverted range, and for a range the server wants split
   into one query per month (the skeleton sends one query per panel, so it refuses that range);
@@ -90,8 +90,8 @@ node "$SKILL/scripts/preview.mjs" ./page ./fixtures --out empty.html --state emp
 npx playwright screenshot --full-page --wait-for-timeout 1200 file://$PWD/preview.html preview.png
 ```
 
-The preview applies the product's Content Security Policy and the query budget, so a page that works here works
-in the frame. A query no fixture matches renders its parameters in the panel's error state: compare them with
+The preview applies the product's Content Security Policy and reports each query's progress (queued, then half
+its rows read) before answering, so a page that works here works in the frame. A query no fixture matches renders its parameters in the panel's error state: compare them with
 what you tested. Read every screenshot before saving; a rendering you have not seen is a bug you have not found.
 Playwright is optional: the html files open in any browser.
 
@@ -105,8 +105,9 @@ decimals, rates as percentages. Theme changes go through the css variables on `:
 
 ## Pitfalls
 
-- `AY.runReport` rejects with a plain message; show it where the result would go. "Too many queries" means the
-  page started more than 2 at once: use the runner.
+- `AY.runReport` rejects with a plain message; show it where the result would go.
+- `onProgress` keeps firing for a query the viewer has moved past: check the generation in it too, or an older
+  query's progress paints over the newer load.
 - Metric values arrive as numbers; dimension values as strings, `null` for an absent value: show "—", not "null".
 - `time_bucket` has a maximum span per bucket (see `get_instructions`): a page with a free date range must pick
   a coarser bucket as the range grows.
