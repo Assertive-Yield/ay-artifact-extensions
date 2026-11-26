@@ -12,34 +12,18 @@ const CONFIG = {
     formats: { revenue: "money", impressions: "int", rpm: "money" },
 };
 
-// ---- Query runner: stays inside the frame's budget (2 in flight) and drops stale responses ----
-
-const MAX_IN_FLIGHT = 2;
-const queue = [];
-let inFlight = 0;
-
-function runQuery(params) {
-    return new Promise((resolve, reject) => {
-        queue.push({ params, resolve, reject });
-        pump();
-    });
-}
-
-function pump() {
-    while (inFlight < MAX_IN_FLIGHT && queue.length > 0) {
-        const job = queue.shift();
-        inFlight++;
-        AY.runReport(job.params)
-            .then(job.resolve, job.reject)
-            .then(() => {
-                inFlight--;
-                pump();
-            });
-    }
-}
+// ---- Loading: one query per panel, its progress shown until the result arrives; stale responses dropped ----
 
 // A load that started before the latest Apply must not paint over the newer one.
 let generation = 0;
+
+function progressText(progress) {
+    if (progress.state === "queued") return "Waiting for a slot…";
+    if (progress.totalRows > 0) {
+        return `Loading… ${Math.min(100, Math.round((progress.rowsRead / progress.totalRows) * 100))}%`;
+    }
+    return "Loading…";
+}
 
 function loadAll() {
     const range = readRange();
@@ -51,7 +35,10 @@ function loadAll() {
     for (const panel of PANELS) {
         const body = document.querySelector(`${panel.selector} [data-body]`);
         setState(body, "Loading…");
-        runQuery(panel.query(range)).then(
+        const onProgress = progress => {
+            if (gen === generation) setState(body, progressText(progress));
+        };
+        AY.runReport(panel.query(range), { onProgress }).then(
             result => {
                 if (gen !== generation) return;
                 if (result.rows.length === 0) setState(body, "No data for this range.");

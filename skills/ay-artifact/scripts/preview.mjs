@@ -11,7 +11,8 @@
 //              subset of run_report parameters the query must contain (arrays compare as sets). A fixture
 //              without `match` answers any query that no other fixture matched.
 //   --state    force every query into one state instead of answering from the fixtures
-//   --delay    milliseconds before each answer (default 400), so the loading state can be seen
+//   --delay    milliseconds before each answer (default 400), so the loading state can be seen; every query
+//              reports `queued` at once and half its rows read halfway through, also under --state loading
 
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -69,8 +70,6 @@ const MOCK_CLIENT = `(function () {
     var FIXTURES = __FIXTURES__;
     var STATE = __STATE__;
     var DELAY = __DELAY__;
-    var MAX_IN_FLIGHT = 2;
-    var inFlight = 0;
     var NUMBER_RE = /^-?(0|[1-9]\\d*)(\\.\\d+)?([eE][+-]?\\d+)?$/;
 
     function normalize(value) {
@@ -111,25 +110,28 @@ const MOCK_CLIENT = `(function () {
         if (fixture == null) throw new Error("No fixture matches this query: " + JSON.stringify(params));
         return withNumericMetrics(fixture.result);
     }
-    function later(fn) {
-        return new Promise(function (resolve, reject) {
-            setTimeout(function () {
-                inFlight--;
-                try { resolve(fn()); } catch (e) { reject(e); }
-            }, DELAY);
-        });
+    // Like the product, a failing onProgress does not fail the query.
+    function reporter(options) {
+        var onProgress = options != null && typeof options.onProgress === "function" ? options.onProgress : null;
+        return function (progress) {
+            if (onProgress == null) return;
+            try { onProgress(progress); } catch (e) {}
+        };
     }
     window.AY = Object.freeze({
-        runReport: function (params) {
+        runReport: function (params, options) {
             var rest = Object.assign({}, params);
             delete rest.format;
             console.log("AY.runReport", JSON.stringify(rest));
-            if (inFlight >= MAX_IN_FLIGHT) {
-                return Promise.reject(new Error("Too many queries; wait for the pending ones to finish"));
-            }
-            inFlight++;
+            var report = reporter(options);
+            setTimeout(function () { report({ state: "queued" }); }, 0);
+            setTimeout(function () { report({ state: "running", rowsRead: 500000, totalRows: 1000000 }); }, DELAY / 2);
             if (STATE === "loading") return new Promise(function () {});
-            return later(function () { return answer(rest); });
+            return new Promise(function (resolve, reject) {
+                setTimeout(function () {
+                    try { resolve(answer(rest)); } catch (e) { reject(e); }
+                }, DELAY);
+            });
         },
     });
 })();`;

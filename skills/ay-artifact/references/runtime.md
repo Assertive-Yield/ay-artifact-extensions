@@ -6,7 +6,7 @@ Content Security Policy `<meta>`, the artifact's `css` in a `<style>`, the AY cl
 
 ## What the page gets
 
-- `window.AY.runReport(params)`: the only runtime API. Nothing else is injected: no chart library, no
+- `window.AY.runReport(params, options)`: the only runtime API. Nothing else is injected: no chart library, no
   stylesheet, no design tokens. Draw charts with inline SVG or sized elements and bring every style in `css`.
 - The frame is sandboxed with scripts only: an opaque origin with no cookies, storage, popups, forms or
   navigation. Links and `location` changes go nowhere.
@@ -19,7 +19,7 @@ Content Security Policy `<meta>`, the artifact's `css` in a `<style>`, the AY cl
 ```js
 AY.runReport({
     report, data_source, dimensions, metrics, where, having, date_range, time_bucket, order_by, limit, offset,
-}) // -> Promise<{ columns, rows, has_more }>
+}, { onProgress }) // -> Promise<{ columns, rows, has_more }>
 ```
 
 - Parameters are those of the MCP `run_report` tool without `format`. `limit` must be between 1 and 1000 and
@@ -27,12 +27,15 @@ AY.runReport({
 - `columns` is `[{ id, label, type: "time" | "dimension" | "metric" }]`, in the order time, dimensions, metrics.
 - `rows` are objects keyed by column id. Metric values are numbers (the MCP file format carries them as
   strings; the client converts). Dimension values are strings, `null` when absent. `time` is a string.
-- Rejects with an `Error` whose message is what the page should show: a validation message, "Too many queries;
-  wait for the pending ones to finish" when the budget is exceeded, "The query took too long" after 5 minutes, a
-  message to ask for fewer rows when the result exceeds 4 MB, or "You are not authorized!" when the viewer
-  cannot access an entity the query names. A shared page is viewed with the viewer's permissions, not the
-  author's, so every panel must handle a rejection on its own.
-- Budget per frame: 2 queries in flight, 20 per minute. A query counts as in flight until its rows arrive.
+- `options.onProgress`, optional, is called with `{ state: "queued" }` while the query waits for a slot, then
+  `{ state: "running", rowsRead, totalRows }` as it reads (`totalRows` is 0 until known). An error it throws
+  does not fail the query.
+- Rejects with an `Error` whose message is what the page should show: a validation message, "You are not
+  authorized!" when the viewer cannot access an entity the query names, or an error when the query is not
+  answered within 20 minutes, waiting in the queue included. A shared page is viewed with the viewer's
+  permissions, not the author's, so every panel must handle a rejection on its own.
+- No budget per frame: every query waits its turn in a queue shared by every viewer, which caps how many run at
+  once per viewer and in all. A page that fires many queries at once waits longer.
 - The `time_bucket` spans and date-range rules of `run_report` apply unchanged (see `get_instructions`).
 
 ## Content limits

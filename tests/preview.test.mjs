@@ -83,13 +83,16 @@ test("rejects a query no fixture matches, naming its parameters", async () => {
     await assert.rejects(AY.runReport({ ...QUERY, dimensions: ["device"] }), /^Error: No fixture matches this query: .*"device"/);
 });
 
-test("allows two queries in flight and rejects the third", async () => {
+test("reports queued then running before answering, with no budget of its own", async () => {
     const AY = client(build(SKELETON, FIXTURES));
-    const first = AY.runReport(QUERY);
-    const second = AY.runReport({ ...QUERY, dimensions: ["geo_country_code"] });
-    await assert.rejects(AY.runReport(QUERY), /Too many queries/);
-    await Promise.all([first, second]);
-    assert.equal((await AY.runReport(QUERY)).rows.length, 1);
+    const progress = [];
+    const results = await Promise.all([
+        AY.runReport(QUERY, { onProgress: p => progress.push(plain(p)) }),
+        AY.runReport(QUERY, { onProgress: () => { throw new Error("page bug"); } }),
+        AY.runReport(QUERY),
+    ]);
+    assert.deepEqual(progress, [{ state: "queued" }, { state: "running", rowsRead: 500000, totalRows: 1000000 }]);
+    assert.deepEqual(results.map(r => r.rows.length), [1, 1, 1]);
 });
 
 test("--state forces loading, error or empty", async () => {
@@ -131,6 +134,7 @@ test("inserts fixture text holding replacement patterns literally", async () => 
 // ---- The skeleton page, run against the mock client with a stub DOM ----
 
 const tick = () => new Promise(r => setTimeout(r, 50));
+const wait = ms => new Promise(r => setTimeout(r, ms));
 const isoDaysAgo = days => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
 
 const loadSkeleton = (fixtures, ...flags) => {
@@ -154,7 +158,7 @@ const loadSkeleton = (fixtures, ...flags) => {
     };
 };
 
-test("skeleton renders every panel from the fixtures within the query budget", async () => {
+test("skeleton renders every panel from the fixtures", async () => {
     const page = loadSkeleton(FIXTURES);
     assert.match(page.body("totals"), /Loading…/);
     await tick();
@@ -164,6 +168,27 @@ test("skeleton renders every panel from the fixtures within the query budget", a
     assert.match(page.body("breakdown"), /<td>—<\/td>/);
     assert.match(page.subtitle.textContent, /^Example entity · \d{4}-\d\d-\d\d to \d{4}-\d\d-\d\d$/);
     assert.equal(page.notice.hidden, true);
+});
+
+test("skeleton shows each query's progress while it loads", async () => {
+    const page = loadSkeleton(FIXTURES, "--state", "loading", "--delay", "400");
+    await tick();
+    assert.equal(page.body("totals"), '<p class="state">Waiting for a slot…</p>');
+    await wait(250);
+    for (const id of ["totals", "trend", "breakdown"]) {
+        assert.equal(page.body(id), '<p class="state">Loading… 50%</p>');
+    }
+});
+
+test("skeleton drops the progress of a load the viewer has moved past", async () => {
+    // The first load reports its rows read (at 400 ms) between the second load's queued (200) and running (600).
+    const page = loadSkeleton(FIXTURES, "--delay", "800");
+    await wait(200);
+    page.apply(isoDaysAgo(7), isoDaysAgo(1));
+    await wait(300);
+    assert.equal(page.body("totals"), '<p class="state">Waiting for a slot…</p>');
+    await wait(600);
+    assert.match(page.body("totals"), /12,345\.68/);
 });
 
 test("skeleton shows the error and empty states per panel", async () => {
